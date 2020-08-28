@@ -6,9 +6,10 @@ class Pipe {
         int shift;
 
     public:
-        Pipe(float posX, float posY);
+        Pipe(float posX, int shift);
         float getPosX();
         int getShift();
-        void setShift();
+        void setPosX(float x);
+        void setShift(int shift);
 };
 #endif

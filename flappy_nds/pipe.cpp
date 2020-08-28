@@ -1,14 +1,22 @@
 #include "pipe.h"
 
-Pipe::Pipe(float posX, float posY) {
+Pipe::Pipe(float posX, int shift) {
     this->posX = posX;
-    this->posY = posY;
+    this->shift = shift;
 }
 
 float Pipe::getPosX() {
     return this->posX;
 }
 
-float Pipe::getPosY() {
-    return this->posY;
+int Pipe::getShift() {
+    return this->shift;
+}
+
+void Pipe::setPosX(float x) {
+    this->posX = x;
+}
+
+void Pipe::setShift(int shift) {
+    this->shift = shift;
 }
