@@ -3,7 +3,7 @@
 class Player {
     private:
         float y = 50;
-        bool alive = false;
+        bool alive = true;
 
     public:
         float getY();

@@ -10,55 +10,92 @@
 #include "player.h"
 
 int score = 0;
-float speed = 0.05;
+float speed = 0.3;
+float velocity = 0;
+const float gravityFactor = 0.05;
+const float gravity = 1.5;
+int color = RGB15(0, 255, 0);
 std::vector<Pipe> pipes;
 
 void processPhysics(Player* player, std::vector<Pipe>* pipes) {
 	for(unsigned int i = 0; i < pipes->size(); i++) {
 		Pipe pipe = pipes->at(i);
 		pipe.setPosX(pipe.getPosX() - speed);
-		std::replace(pipes->begin(), pipes->end(), pipes->at(i), pipe);
+		pipes->at(i) = pipe;
+	}
+
+	float newY = player->getY() + (gravity + velocity);
+
+#ifdef DEBUG
+	printf("\x1b[6;0HnewY = %f", newY);
+#endif
+	
+	if(newY <= 14.9) {
+		player->setY(15);
+		velocity = -1.5;
+	}else if(newY >= 192) {
+		player->setAlive(false);
+	}else {
+		player->setY(newY);
+	}
+
+	if(velocity != 0) {
+		if(velocity + gravityFactor <= 0) {
+			velocity += gravityFactor;
+		}else {
+			velocity = 0;
+		}
 	}
 }
 
 void renderPlayer(Player* player) {
-	glBoxFilled(250, player->getY() - 10, 256, player->getY() + 10, RGB15(0, 255, 0));
+	glBoxFilled(80, player->getY() - 15, 86, player->getY(), color);
 }
 
 bool processInput(Player* player) {
 	scanKeys();
 	int keys = keysDown();
 	if(keys & KEY_START) return true;
+	if(keys & KEY_A) velocity = -2.5;
 	return false;
 }
 
-void drawPipes(std::vector<Pipe>* pipes) {
+void renderPipes(std::vector<Pipe>* pipes) {
 	for(unsigned int i = 0; i < pipes->size(); i++) {
 		Pipe pipe = pipes->at(i);
-		glBoxFilled(pipe.getPosX(), 0, pipe.getPosX() + 10, 21 + pipe.getShift(), RGB15(0, 255, 0));
-		glBoxFilled(pipe.getPosX(), 192, pipe.getPosX() + 10, 71 + pipe.getShift(), RGB15(0, 255, 0));
+		glBoxFilled(pipe.getPosX(), 0, pipe.getPosX() + 10, 21 + pipe.getShift(), color);
+		glBoxFilled(pipe.getPosX(), 192, pipe.getPosX() + 10, 71 + pipe.getShift(), color);
 	}
 }
 
 void vblank() {}
 
 int main(void) {
+#ifdef DEBUG
+	defaultExceptionHandler();
+	consoleDemoInit();
+#endif
 	videoSetMode(MODE_5_3D);
 	irqSet(IRQ_VBLANK, vblank);
 	srand(time(NULL));
 	glScreen2D();
 	Player player;
 
-	for(int i = 0; i < 3; i++) {
-		Pipe pipe(96 + (55 * i), rand() % 101);
+	for(int i = 0; i < 4; i++) {
+		Pipe pipe(162 + (70 * i), rand() % 101);
 		pipes.push_back(pipe);
 	}
 
 	while(1) {
+#ifdef DEBUG
+		printf("\x1b[0;0HVelocity = %f", velocity);
+		printf("\x1b[2;0HAlive = %d", player.isAlive());
+		printf("\x1b[4;0HPlayer Y = %f", player.getY());
+#endif
 		if(processInput(&player)) break;
 		glBegin2D();
 		renderPlayer(&player);
-		drawPipes(&pipes);
+		renderPipes(&pipes);
 		processPhysics(&player, &pipes);
 		glEnd2D();
 		glFlush(0);
