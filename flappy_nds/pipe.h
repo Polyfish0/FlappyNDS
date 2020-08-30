@@ -5,14 +5,17 @@ class Pipe {
         float posX;
         int thickness;
         int shift;
+        int points;
 
     public:
-        Pipe(float posX, int shift, int thickness);
+        Pipe(float posX, int shift, int thickness, int points);
         float getPosX();
         int getShift();
         int getThickness();
+        int getPoints();
         void setPosX(float x);
         void setShift(int shift);
         void setThickness(int thickness);
+        void setPoints(int points);
 };
 #endif

@@ -21,11 +21,11 @@ void processPhysics(Player* player, std::vector<Pipe>* pipes) {
 	for(unsigned int i = 0; i < pipes->size(); i++) {
 		Pipe pipe = pipes->at(i);
 		if(pipe.getPosX() <= -10) {
-			pipes->push_back(Pipe(256, rand() % 101, 10));
-			return;
+			pipes->at(i) = Pipe(256, rand() % 101, 10, 1);
+		}else {
+			pipe.setPosX(pipe.getPosX() - speed);
+			pipes->at(i) = pipe;
 		}
-		pipe.setPosX(pipe.getPosX() - speed);
-		pipes->at(i) = pipe;
 	}
 
 	float newY = player->getY() + (gravity + velocity);
@@ -76,13 +76,19 @@ void renderPipes(std::vector<Pipe>* pipes) {
 }
 
 void checkHitbox(Player* player, std::vector<Pipe>* pipes) {
-	Pipe pipe = pipes->at(score);
-	if(pipe.getPosX() <= 80) {
-		if(pipe.getPosX() + pipe.getThickness() >= 80) {
-			score += 1;
+	for(unsigned int i = 0; i < pipes->size(); i++) {
+		Pipe pipe = pipes->at(i);
+		if(pipe.getPosX() <= 80) {
+			score += pipe.getPoints();
+			pipe.setPoints(0);
+			pipes->at(i) = pipe;
 		}
-		if(player->getY() >= 71 + pipe.getShift() || player->getY() <= 21 + 80) {
-
+		if(pipe.getPosX() < 80) {
+			if(80 < pipe.getPosX() + pipe.getThickness()) {
+				if(player->getY() <= 21 + pipe.getShift() || player->getY() >= 71 + pipe.getShift()) {
+					player->setAlive(false);
+				}
+			}
 		}
 	}
 }
@@ -101,7 +107,7 @@ int main(void) {
 	Player player;
 
 	for(int i = 0; i < 4; i++) {
-		Pipe pipe(162 + (70 * i), rand() % 101, 10);
+		Pipe pipe(162 + (70 * i), rand() % 101, 10, 1);
 		pipes.push_back(pipe);
 	}
 
