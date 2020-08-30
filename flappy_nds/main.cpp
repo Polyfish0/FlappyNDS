@@ -19,12 +19,12 @@ std::vector<Pipe> pipes;
 
 void processPhysics(Player* player, std::vector<Pipe>* pipes) {
 	for(unsigned int i = 0; i < pipes->size(); i++) {
-		Pipe pipe = pipes->at(i);
-		if(pipe.getPosX() <= -10) {
-			pipes->at(i) = Pipe(256, rand() % 101, 10, 1);
+		if(pipes->at(i).getPosX() <= -10) {
+			pipes->at(i).setShift(rand() % 101);
+			pipes->at(i).setPoints(1);
+			pipes->at(i).setPosX(256);
 		}else {
-			pipe.setPosX(pipe.getPosX() - speed);
-			pipes->at(i) = pipe;
+			pipes->at(i).setPosX(pipes->at(i).getPosX() - speed);
 		}
 	}
 
@@ -69,23 +69,20 @@ bool processInput(Player* player) {
 
 void renderPipes(std::vector<Pipe>* pipes) {
 	for(unsigned int i = 0; i < pipes->size(); i++) {
-		Pipe pipe = pipes->at(i);
-		glBoxFilled(pipe.getPosX(), 0, pipe.getPosX() + pipe.getThickness(), 21 + pipe.getShift(), color);
-		glBoxFilled(pipe.getPosX(), 192, pipe.getPosX() + pipe.getThickness(), 71 + pipe.getShift(), color);
+		glBoxFilled(pipes->at(i).getPosX(), 0, pipes->at(i).getPosX() + pipes->at(i).getThickness(), 21 + pipes->at(i).getShift(), color);
+		glBoxFilled(pipes->at(i).getPosX(), 192, pipes->at(i).getPosX() + pipes->at(i).getThickness(), 71 + pipes->at(i).getShift(), color);
 	}
 }
 
 void checkHitbox(Player* player, std::vector<Pipe>* pipes) {
 	for(unsigned int i = 0; i < pipes->size(); i++) {
-		Pipe pipe = pipes->at(i);
-		if(pipe.getPosX() <= 80) {
-			score += pipe.getPoints();
-			pipe.setPoints(0);
-			pipes->at(i) = pipe;
+		if(pipes->at(i).getPosX() <= 80) {
+			score += pipes->at(i).getPoints();
+			pipes->at(i).setPoints(0);
 		}
-		if(pipe.getPosX() < 80) {
-			if(80 < pipe.getPosX() + pipe.getThickness()) {
-				if(player->getY() <= 21 + pipe.getShift() || player->getY() >= 71 + pipe.getShift()) {
+		if(pipes->at(i).getPosX() < 86) {
+			if(86 < pipes->at(i).getPosX() + pipes->at(i).getThickness()) {
+				if(player->getY() <= 21 + pipes->at(i).getShift() || player->getY() >= 71 + pipes->at(i).getShift()) {
 					player->setAlive(false);
 				}
 			}
@@ -96,10 +93,8 @@ void checkHitbox(Player* player, std::vector<Pipe>* pipes) {
 void vblank() {}
 
 int main(void) {
-#ifdef DEBUG
 	defaultExceptionHandler();
 	consoleDemoInit();
-#endif
 	videoSetMode(MODE_5_3D);
 	irqSet(IRQ_VBLANK, vblank);
 	srand(time(NULL));
@@ -112,13 +107,21 @@ int main(void) {
 	}
 
 	while(1) {
+#ifndef DEBUG
+		printf("\x1b[0;0HScore = %d", score);
+#endif
 #ifdef DEBUG
 		printf("\x1b[0;0HVelocity = %f", velocity);
 		printf("\x1b[2;0HAlive = %d", player.isAlive());
 		printf("\x1b[4;0HPlayer Y = %f", player.getY());
 		printf("\x1b[8;0HScore = %d", score);
+		printf("\x1b[10;0HPipes vector size = %d", pipes.size());
 #endif
-		if(processInput(&player)) break;
+		if(processInput(&player)) {
+			glEnd2D();
+			glFlush(0);
+			break;
+		}
 		glBegin2D();
 		renderPlayer(&player);
 		checkHitbox(&player, &pipes);
