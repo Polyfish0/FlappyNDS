@@ -20,6 +20,10 @@ std::vector<Pipe> pipes;
 void processPhysics(Player* player, std::vector<Pipe>* pipes) {
 	for(unsigned int i = 0; i < pipes->size(); i++) {
 		Pipe pipe = pipes->at(i);
+		if(pipe.getPosX() <= -10) {
+			pipes->push_back(Pipe(256, rand() % 101, 10));
+			return;
+		}
 		pipe.setPosX(pipe.getPosX() - speed);
 		pipes->at(i) = pipe;
 	}
@@ -56,15 +60,30 @@ bool processInput(Player* player) {
 	scanKeys();
 	int keys = keysDown();
 	if(keys & KEY_START) return true;
-	if(keys & KEY_A) velocity = -2.5;
+	if(player->isAlive()) {
+		if(keys & KEY_A) velocity = -2.5;
+	}else {
+	}
 	return false;
 }
 
 void renderPipes(std::vector<Pipe>* pipes) {
 	for(unsigned int i = 0; i < pipes->size(); i++) {
 		Pipe pipe = pipes->at(i);
-		glBoxFilled(pipe.getPosX(), 0, pipe.getPosX() + 10, 21 + pipe.getShift(), color);
-		glBoxFilled(pipe.getPosX(), 192, pipe.getPosX() + 10, 71 + pipe.getShift(), color);
+		glBoxFilled(pipe.getPosX(), 0, pipe.getPosX() + pipe.getThickness(), 21 + pipe.getShift(), color);
+		glBoxFilled(pipe.getPosX(), 192, pipe.getPosX() + pipe.getThickness(), 71 + pipe.getShift(), color);
+	}
+}
+
+void checkHitbox(Player* player, std::vector<Pipe>* pipes) {
+	Pipe pipe = pipes->at(score);
+	if(pipe.getPosX() <= 80) {
+		if(pipe.getPosX() + pipe.getThickness() >= 80) {
+			score += 1;
+		}
+		if(player->getY() >= 71 + pipe.getShift() || player->getY() <= 21 + 80) {
+
+		}
 	}
 }
 
@@ -82,7 +101,7 @@ int main(void) {
 	Player player;
 
 	for(int i = 0; i < 4; i++) {
-		Pipe pipe(162 + (70 * i), rand() % 101);
+		Pipe pipe(162 + (70 * i), rand() % 101, 10);
 		pipes.push_back(pipe);
 	}
 
@@ -91,12 +110,16 @@ int main(void) {
 		printf("\x1b[0;0HVelocity = %f", velocity);
 		printf("\x1b[2;0HAlive = %d", player.isAlive());
 		printf("\x1b[4;0HPlayer Y = %f", player.getY());
+		printf("\x1b[8;0HScore = %d", score);
 #endif
 		if(processInput(&player)) break;
 		glBegin2D();
 		renderPlayer(&player);
+		checkHitbox(&player, &pipes);
 		renderPipes(&pipes);
-		processPhysics(&player, &pipes);
+		if(player.isAlive()) {
+			processPhysics(&player, &pipes);
+		}
 		glEnd2D();
 		glFlush(0);
 		swiWaitForVBlank();
