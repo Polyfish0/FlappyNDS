@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-#include <algorithm>
 #include <time.h>
+#include <nf_lib.h>
 #include "pipe.h"
 #include "player.h"
 
@@ -117,11 +117,7 @@ int main(void) {
 		printf("\x1b[8;0HScore = %d", score);
 		printf("\x1b[10;0HPipes vector size = %d", pipes.size());
 #endif
-		if(processInput(&player)) {
-			glEnd2D();
-			glFlush(0);
-			break;
-		}
+		if(processInput(&player)) break;
 		glBegin2D();
 		renderPlayer(&player);
 		checkHitbox(&player, &pipes);
